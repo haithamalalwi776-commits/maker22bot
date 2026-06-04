@@ -5,7 +5,7 @@ from flask import Flask
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
-TOKEN = "8283760934:AAHn2rrYm3INlJa01qnCe9UGi_tGrMpZm00 "
+TOKEN ="8283760934:AAHn2rrYm3INlJa01qnCe9UGi_tGrMpZm00 "
 ADMIN_ID = 123456789 # ID حقك من @userinfobot
 
 app = Flask('')
