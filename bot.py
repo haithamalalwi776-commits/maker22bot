@@ -30,13 +30,19 @@ def ask_token(message):
         bot.reply_to(message, "❌ اختر من القائمة.")
         return
     msg = bot.send_message(message.chat.id, "✅ أرسل توكن البوت:")
-    bot.register_next_step_handler(msg, lambda m: deploy_bot(m, b_type))
-
-
-    def deploy_bot(message, b_type):
+    bot.register_next_step_handler(msg, lambda m: deploy_bot(m, b_type))     def deploy_bot(message, b_type):
     token = message.text.strip()
     cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
     conn.commit()
+    
+    script = "contact.py"
+    
+    if os.path.exists(script):
+        subprocess.Popen(["python3", script, token])
+        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
+    else:
+        bot.reply_to(message, "⚠️ خطأ: الملف غير موجود.")
+
     
     # تحديد مسار الملف في المجلد الحالي
     current_dir = os.getcwd()
