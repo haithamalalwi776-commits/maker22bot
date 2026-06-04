@@ -4,7 +4,7 @@ from flask import Flask
 import threading
 
 # ضع التوكن الجديد الخاص بك هنا
-BOT_TOKEN = "8283760934:AAFL65dKFkzgGsShWlQXyPo0yLf875dXzio "
+BOT_TOKEN ="8283760934:AAFL65dKFkzgGsShWlQXyPo0yLf875dXzio "
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
