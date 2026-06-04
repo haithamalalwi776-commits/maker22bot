@@ -11,7 +11,6 @@ cursor = conn.cursor()
 cursor.execute('CREATE TABLE IF NOT EXISTS bots (user_id INTEGER, token TEXT, bot_type TEXT)')
 conn.commit()
 
-# توكن بوت الصانع (ضعه هنا)
 BOT_TOKEN = "8283760934:AAHn2rrYm3INlJa01qnCe9UGi_tGrMpZm00"
 bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
@@ -22,15 +21,15 @@ bot_types = ["بوت تواصل", "صارحني", "اكس او"]
 def start(message):
     markup = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     for b in bot_types: markup.add(b)
-    msg = bot.send_message(message.chat.id, "🎯 أهلاً بك في منصة الصانع، اختر نوع البوت:", reply_markup=markup)
+    msg = bot.send_message(message.chat.id, "🎯 أهلاً بك، اختر نوع البوت:", reply_markup=markup)
     bot.register_next_step_handler(msg, ask_token)
 
 def ask_token(message):
     b_type = message.text
     if b_type not in bot_types:
-        bot.reply_to(message, "❌ اختر من القائمة من فضلك.")
+        bot.reply_to(message, "❌ اختر من القائمة.")
         return
-    msg = bot.send_message(message.chat.id, "✅ أرسل توكن البوت الجديد لتفعيله:")
+    msg = bot.send_message(message.chat.id, "✅ أرسل توكن البوت:")
     bot.register_next_step_handler(msg, lambda m: deploy_bot(m, b_type))
 
 def deploy_bot(message, b_type):
@@ -38,31 +37,14 @@ def deploy_bot(message, b_type):
     cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
     conn.commit()
     
-    # الحصول على المسار الفعلي للمجلد الذي يوجد فيه bot.py
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # القالب الآن موجود في المجلد الرئيسي مباشرة
+    script = "contact.py"
     
-    # تحديد مسار القالب بشكل دقيق
-    template_map = {"بوت تواصل": os.path.join(base_dir, "codes", "contact.py")}
-    script = template_map.get(b_type)
-    
-    # التأكد من وجود الملف
-    if script and os.path.exists(script):
-        # تشغيل الملف
+    if os.path.exists(script):
         subprocess.Popen(["python3", script, token])
         bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
     else:
-        bot.reply_to(message, f"⚠️ خطأ: لم يتم العثور على ملف القالب في المسار: {script}")
-
-    
-    # ربط القالب بالتوكن
-    template_map = {"بوت تواصل": "codes/contact.py"}
-    script = template_map.get(b_type)
-    
-    if script and os.path.exists(script):
-        subprocess.Popen(["python3", script, token])
-        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
-    else:
-        bot.reply_to(message, "⚠️ تم حفظ البيانات، لكن القالب غير موجود حالياً.")
+        bot.reply_to(message, "⚠️ خطأ: ملف القالب غير موجود في المجلد الرئيسي.")
 
 @app.route('/')
 def home(): return "Bot Maker Platform Running"
