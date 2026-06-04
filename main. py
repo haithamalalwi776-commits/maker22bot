@@ -4,6 +4,7 @@ import subprocess
 from flask import Flask
 import threading
 import os
+import sys
 
 # إعداد قاعدة البيانات
 conn = sqlite3.connect('bots_data.db', check_same_thread=False)
@@ -20,38 +21,5 @@ bot_types = ["بوت تواصل", "صارحني", "اكس او"]
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    markup = telebot.types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    for b in bot_types:
-        markup.add(b)
-    msg = bot.send_message(message.chat.id, "🎯 أهلاً بك في منصة الصانع، اختر نوع البوت:", reply_markup=markup)
-    bot.register_next_step_handler(msg, ask_token)
-
-def ask_token(message):
-    b_type = message.text
-    if b_type not in bot_types:
-        bot.reply_to(message, "❌ اختر من القائمة من فضلك.")
-        return
-    msg = bot.send_message(message.chat.id, "✅ أرسل توكن البوت الجديد لتفعيله:")
-    bot.register_next_step_handler(msg, lambda m: deploy_bot(m, b_type))
-
-def deploy_bot(message, b_type):
-    token = message.text.strip()
-    cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
-    conn.commit()
-    
-    # تأكد أن ملف contact.py موجود في المجلد الرئيسي
-    script = "contact.py"
-    
-    if os.path.exists(script):
-        subprocess.Popen(["python3", script, token])
-        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
-    else:
-        bot.reply_to(message, "⚠️ خطأ: ملف القالب غير موجود في المجلد الرئيسي.")
-
-@app.route('/')
-def home():
-    return "Bot Maker Platform Running"
-
-if __name__ == '__main__':
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=10000)).start()
-    bot.infinity_polling()
+    markup = telebot.types.ReplyKeyboardMarkup(one_time_keyboard
+ 
