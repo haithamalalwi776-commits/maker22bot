@@ -1,0 +1,20 @@
+ import telebot
+import sys
+import os
+
+# استقبال التوكن عند تشغيل هذا الملف
+if len(sys.argv) > 1:
+    token = sys.argv[1]
+    bot = telebot.TeleBot(token)
+
+    @bot.message_handler(commands=['start'])
+    def start(message):
+        bot.reply_to(message, "مرحباً! أنا بوت تواصل تم إنشاؤه عبر منصة Echo.")
+
+    @bot.message_handler(func=lambda message: True)
+    def echo(message):
+        # إعادة إرسال الرسالة كمثال لبوت التواصل
+        bot.reply_to(message, "تم استلام رسالتك!")
+
+    bot.infinity_polling()
+ 
