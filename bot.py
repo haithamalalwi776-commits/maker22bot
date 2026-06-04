@@ -33,12 +33,22 @@ def ask_token(message):
         return
     msg = bot.send_message(message.chat.id, "✅ أرسل توكن البوت الجديد لتفعيله:")
     bot.register_next_step_handler(msg, lambda m: deploy_bot(m, b_type))
-
 def deploy_bot(message, b_type):
     token = message.text.strip()
     cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
     conn.commit()
     
+    # تحديد مسار الملف بجانب ملف bot.py تماماً
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    script_path = os.path.join(base_path, "contact.py")
+    
+    if os.path.exists(script_path):
+        subprocess.Popen(["python3", script_path, token])
+        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
+    else:
+        bot.reply_to(message, f"⚠️ خطأ: الملف غير موجود في: {script_path}")
+
+
     # الحصول على مسار المجلد الحالي
     current_path = os.getcwd()
     script = "contact.py"
