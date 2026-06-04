@@ -32,11 +32,27 @@ def ask_token(message):
     msg = bot.send_message(message.chat.id, "✅ أرسل توكن البوت:")
     bot.register_next_step_handler(msg, lambda m: deploy_bot(m, b_type))
 
-def deploy_bot(message, b_type):
+
+    def deploy_bot(message, b_type):
     token = message.text.strip()
     cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
     conn.commit()
     
+    # تحديد مسار الملف في المجلد الحالي
+    current_dir = os.getcwd()
+    script_path = os.path.join(current_dir, "contact.py")
+    
+    # طباعة المسار في سجلات سيرفر Render
+    print(f"DEBUG: Current directory is {current_dir}")
+    print(f"DEBUG: Searching for script at {script_path}")
+    
+    if os.path.exists(script_path):
+        subprocess.Popen(["python3", "contact.py", token])
+        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
+    else:
+        # رسالة تخبرنا بالضبط أين يبحث السيرفر
+        bot.reply_to(message, f"⚠️ خطأ: الملف غير موجود. المسار الذي بحثت فيه هو: {script_path}")
+
     # القالب الآن موجود في المجلد الرئيسي مباشرة
     script = "contact.py"
     
