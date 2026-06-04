@@ -6,65 +6,72 @@ import telebot
 from telebot import types
 
 # ---------------------------------------------------------
-# 1. كود Flask الوهمي لاستقرار السيرفر على Render
+# 1. تشغيل سيرفر Flask بأعلى كفاءة لمنع توقف الرندر
 # ---------------------------------------------------------
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Multi-Bot Maker Server is Running Live!"
+    return "🔥 Bot Maker Server is Fully Alive and Running! 🔥"
+
+@app.route('/health')
+def health():
+    return "OK", 200
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    # تشغيل بدون ديباجر لضمان عدم التكرار والانهيار
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
-threading.Thread(target=run_flask, daemon=True).start()
+# تشغيل السيرفر في خيط مستقل
+flask_thread = threading.Thread(target=run_flask, daemon=True)
+flask_thread.start()
 
 # ---------------------------------------------------------
-# 2. إعداد البوت الصانع الرئيسي
+# 2. إعداد وتشغيل البوت الصانع الرئيسي
 # ---------------------------------------------------------
+# تذكر تغيير التوكن بالأسفل إذا كنت تستخدم بوتاً جديداً
 BOT_TOKEN = "8696144716:AAFF9SU0uXoSgtmTtAkWwaFBpAXXNZ_BWoU"
-bot = telebot.TeleBot(BOT_TOKEN)
+bot = telebot.TeleBot(BOT_TOKEN, threaded=True, num_threads=4)
 
-# قاموس لحفظ نوع البوت الذي يختاره كل مستخدم مؤقتاً
 user_choices = {}
 
-# قائمة الأزرار والأنواع المتوفرة في البوت
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    markup = types.InlineKeyboardMarkup(row_width=2)
-    
-    btn1 = types.InlineKeyboardButton("🔄 بوت تواصل", callback_data="type_بوت تواصل")
-    btn2 = types.InlineKeyboardButton("🛡️ بوت حماية للمجموعات", callback_data="type_بوت حماية المجموعات")
-    btn3 = types.InlineKeyboardButton("🎯 بوت ألعاب وفقرات", callback_data="type_بوت ألعاب وفقرات")
-    btn4 = types.InlineKeyboardButton("📢 بوت نشر تلقائي", callback_data="type_بوت نشر تلقائي")
-    
-    markup.add(btn1, btn2, btn3, btn4)
-    
-    welcome_text = (
-        "👋 أهلاً بك في بوت صانع البوتات المطور!\n\n"
-        "🤖 يرجى اختيار نوع البوت الذي ترغب في صناعته من الأزرار أدناه 👇"
-    )
-    bot.reply_to(message, welcome_text, reply_markup=markup)
+    try:
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        btn1 = types.InlineKeyboardButton("🔄 بوت تواصل", callback_data="type_بوت تواصل")
+        btn2 = types.InlineKeyboardButton("🛡️ بوت حماية للمجموعات", callback_data="type_بوت حماية المجموعات")
+        btn3 = types.InlineKeyboardButton("🎯 بوت ألعاب وفقرات", callback_data="type_بوت ألعاب وفقرات")
+        btn4 = types.InlineKeyboardButton("📢 بوت نشر تلقائي", callback_data="type_بوت نشر تلقائي")
+        markup.add(btn1, btn2, btn3, btn4)
+        
+        welcome_text = (
+            "👋 أهلاً بك في بوت صانع البوتات المطور!\n\n"
+            "🤖 يرجى اختيار نوع البوت الذي ترغب في صناعته من الأزرار أدناه 👇"
+        )
+        bot.reply_to(message, welcome_text, reply_markup=markup)
+    except Exception as e:
+        print(f"Error in start command: {e}")
 
-# استقبال ضغطة أي زر وتحديد النوع تلقائياً
 @bot.callback_query_handler(func=lambda call: call.data.startswith("type_"))
 def handle_bot_selection(call):
-    selected_type = call.data.split("_")[1]
-    user_choices[call.message.chat.id] = selected_type
-    
-    msg = bot.send_message(
-        call.message.chat.id, 
-        f"📥 رائع! لقد اخترت صناعة (**{selected_type}**).\n\n"
-        f"قم بإرسال **التوكن (Token)** الخاص بالبوت الآن من @BotFather:"
-    )
-    bot.register_next_step_handler(msg, process_token)
+    try:
+        selected_type = call.data.split("_")[1]
+        user_choices[call.message.chat.id] = selected_type
+        
+        msg = bot.send_message(
+            call.message.chat.id, 
+            f"📥 رائع! لقد اخترت صناعة (**{selected_type}**).\n\n"
+            f"قم بإرسال **التوكن (Token)** الخاص بالبوت الآن من @BotFather:"
+        )
+        bot.register_next_step_handler(msg, process_token)
+    except Exception as e:
+        print(f"Error in callback: {e}")
 
-# معالجة التوكن وإظهار الرسالة الموحدة حسب نوع الزر
 def process_token(message):
     user_token = message.text.strip()
     chat_id = message.chat.id
-    
     bot_type = user_choices.get(chat_id, "بوت تواصل")
     
     try:
@@ -94,15 +101,16 @@ def process_token(message):
             f"💡 نصيحة: يمكنك تخصيص اسم وصورة البوت من @BotFather"
         )
         bot.send_message(chat_id, success_message)
-
     except Exception as e:
         bot.send_message(chat_id, "❌ عذراً، التوكن الذي أرسلته غير صحيح! يرجى التأكد وإعادة المحاولة.")
 
 # ---------------------------------------------------------
-# 3. حلقة تكرار ذكية ومستمرة لمنع انهيار البوت وإغلاقه
+# 3. تشغيل أمن ومستمر ومحمي ضد الانهيارات المفاجئة
 # ---------------------------------------------------------
+print("🚀 Main Bot Maker Starter Successfully...")
 while True:
     try:
-        bot.polling(none_stop=True, interval=0, timeout=20)
+        bot.polling(none_stop=True, interval=0, timeout=40)
     except Exception as e:
-        time.sleep(3)
+        print(f"Polling error, restarting in 5 seconds... Error: {e}")
+        time.sleep(5)
