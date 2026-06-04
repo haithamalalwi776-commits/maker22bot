@@ -38,6 +38,22 @@ def deploy_bot(message, b_type):
     cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
     conn.commit()
     
+    # الحصول على المسار الفعلي للمجلد الذي يوجد فيه bot.py
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # تحديد مسار القالب بشكل دقيق
+    template_map = {"بوت تواصل": os.path.join(base_dir, "codes", "contact.py")}
+    script = template_map.get(b_type)
+    
+    # التأكد من وجود الملف
+    if script and os.path.exists(script):
+        # تشغيل الملف
+        subprocess.Popen(["python3", script, token])
+        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
+    else:
+        bot.reply_to(message, f"⚠️ خطأ: لم يتم العثور على ملف القالب في المسار: {script}")
+
+    
     # ربط القالب بالتوكن
     template_map = {"بوت تواصل": "codes/contact.py"}
     script = template_map.get(b_type)
