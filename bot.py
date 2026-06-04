@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 from flask import Flask
 import telebot
 from telebot import types
@@ -33,7 +34,6 @@ user_choices = {}
 def send_welcome(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
     
-    # هنا يمكنك إضافة أو تغيير أي أزرار وأنواع تريدها مستقبلاً
     btn1 = types.InlineKeyboardButton("🔄 بوت تواصل", callback_data="type_بوت تواصل")
     btn2 = types.InlineKeyboardButton("🛡️ بوت حماية للمجموعات", callback_data="type_بوت حماية المجموعات")
     btn3 = types.InlineKeyboardButton("🎯 بوت ألعاب وفقرات", callback_data="type_بوت ألعاب وفقرات")
@@ -50,7 +50,6 @@ def send_welcome(message):
 # استقبال ضغطة أي زر وتحديد النوع تلقائياً
 @bot.callback_query_handler(func=lambda call: call.data.startswith("type_"))
 def handle_bot_selection(call):
-    # استخراج اسم النوع من الزر المضغوط
     selected_type = call.data.split("_")[1]
     user_choices[call.message.chat.id] = selected_type
     
@@ -66,23 +65,19 @@ def process_token(message):
     user_token = message.text.strip()
     chat_id = message.chat.id
     
-    # جلب نوع البوت الذي اختاره المستخدم من الزر، وإذا لم يجد يضع افتراضي "تواصل"
     bot_type = user_choices.get(chat_id, "بوت تواصل")
     
     try:
-        # فحص التوكن وجلب معرف البوت المصنوع
         temp_bot = telebot.TeleBot(user_token)
         bot_info = temp_bot.get_me()
         bot_username = f"@{bot_info.username}"
         
-        # تشغيل وهمي خفيف للبوت المصنوع ليبقى "يعمل الآن"
         @temp_bot.message_handler(commands=['start'])
         def echo_start(m):
             temp_bot.reply_to(m, f"مرحباً بك! هذا البوت تم إنشاؤه بنجاح كـ {bot_type}.")
             
         threading.Thread(target=lambda: temp_bot.infinity_polling(skip_pending=True), daemon=True).start()
 
-        # الرسالة الموحدة الفخمة (تتغير فيها كلمة "النوع" ديناميكياً حسب الزر المختار)
         success_message = (
             f"✨\n"
             f"🎉 تهانينا! تم إنشاء البوت بنجاح\n\n"
@@ -102,3 +97,12 @@ def process_token(message):
 
     except Exception as e:
         bot.send_message(chat_id, "❌ عذراً، التوكن الذي أرسلته غير صحيح! يرجى التأكد وإعادة المحاولة.")
+
+# ---------------------------------------------------------
+# 3. حلقة تكرار ذكية ومستمرة لمنع انهيار البوت وإغلاقه
+# ---------------------------------------------------------
+while True:
+    try:
+        bot.polling(none_stop=True, interval=0, timeout=20)
+    except Exception as e:
+        time.sleep(3)
