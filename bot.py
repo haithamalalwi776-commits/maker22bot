@@ -23,7 +23,7 @@ threading.Thread(target=run_flask, daemon=True).start()
 # ---------------------------------------------------------
 # 2. إعداد البوت الصانع الرئيسي المطور (أزرار متعددة)
 # ---------------------------------------------------------
-BOT_TOKEN="8696144716:AAGwBrwgkcR9Z5N8ftFyp6NTDLcqpDJc-rA " 
+BOT_TOKEN="8696144716:AAGwBrwgkcR9Z5N8ftFyp6NTDLcqpDJc-rA" 
 bot = telebot.TeleBot(BOT_TOKEN)
 
 user_choices = {}
