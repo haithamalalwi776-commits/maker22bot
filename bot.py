@@ -1,6 +1,24 @@
 import telebot
 from telebot import types
 import threading
+import os
+from threading import Thread
+from flask import Flask
+
+# إنشاء تطبيق ويب وهمي لإرضاء سيرفر Render
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is Running Live!"
+
+def run():
+    # Render يرسل المنفذ تلقائياً في متغير PORT، وإذا لم يجده يفتح على 8080
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+# تشغيل موقع الويب الوهمي في خلفية البوت دون التأثير عليه
+Thread(target=run).start()
 
 # ⚠️ ضع توكين بوتك الرئيسي الشغال هنا
 MAIN_BOT_TOKEN ="8696144716:AAGphvaLzcfnO7xr6OuEDnblo70MSogd01E"
