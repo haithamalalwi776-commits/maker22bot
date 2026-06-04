@@ -39,9 +39,18 @@ def deploy_bot(message, b_type):
     cursor.execute('INSERT INTO bots VALUES (?, ?, ?)', (message.chat.id, token, b_type))
     conn.commit()
     
-    # تأكد أن ملف contact.py موجود في المجلد الرئيسي
+    # الحصول على مسار المجلد الحالي
+    current_path = os.getcwd()
     script = "contact.py"
+    full_path = os.path.join(current_path, script)
     
+    if os.path.exists(script):
+        subprocess.Popen(["python3", script, token])
+        bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
+    else:
+        # هذه الرسالة ستخبرنا أين يبحث البوت بالضبط
+        bot.reply_to(message, f"⚠️ خطأ: لم أجد الملف في المجلد: {current_path}")
+
     if os.path.exists(script):
         subprocess.Popen(["python3", script, token])
         bot.reply_to(message, f"🚀 تم تفعيل بوت '{b_type}' بنجاح!")
